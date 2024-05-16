@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+    html,
+    body {
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent
+    }
+
+    body {
+        @apply text-white bg-primary
+    }
+}
+
+@layer components {
+    .sidebarTitle {
+        @apply font-semibold text-[18px];
+    }
+
+    .sidebarLink {
+        @apply text-textColor ml-4 cursor-pointer hover:text-white transition w-fit
+    }
+
+    .sidebarActive {
+        @apply text-white;
+    }
+
+    .moviesGrid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .cardSkeleton {
+        background-image: linear-gradient(90deg,
+                #090b0e 0px,
+                #3d3d3d 60px,
+                #090b0e 120px);
+        animation: shine 0.7s linear infinite;
+    }
+
+    @keyframes shine {
+        0% {
+            background-position: 0px;
+        }
+
+        100% {
+            background-position: 220px;
+        }
+    }
+
+
+}
+
+.lds-facebook {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.lds-facebook div {
+    display: inline-block;
+    position: absolute;
+    left: 8px;
+    width: 16px;
+    background: #fff;
+    animation: lds-facebook 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+}
+
+.lds-facebook div:nth-child(1) {
+    left: 8px;
+    animation-delay: -0.24s;
+}
+
+.lds-facebook div:nth-child(2) {
+    left: 32px;
+    animation-delay: -0.12s;
+}
+
+.lds-facebook div:nth-child(3) {
+    left: 56px;
+    animation-delay: 0;
+}
+
+@keyframes lds-facebook {
+    0% {
+        top: 8px;
+        height: 64px;
+    }
+
+    50%,
+    100% {
+        top: 24px;
+        height: 32px;
+    }
+}
