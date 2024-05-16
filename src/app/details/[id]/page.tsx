@@ -1,16 +1,15 @@
-'use client';
-import Genres from '@/app/genres/[id]/page';
-import Loading from '@/components/Loading';
-import { BASE_URL } from '@/utils/Const';
-import axios from 'axios';
-import dynamic from 'next/dynamic';
-import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import { IoMdClose } from 'react-icons/io';
+import axios from 'axios';
+import { useRouter, useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import 'react-player/react-player.css';
+import Genres from '@/app/genres/[id]/page';
+import { BASE_URL } from '@/utils/Const';
 
 const ReactPlayer = dynamic(() => import('react-player/lazy'), { ssr: false });
 
-export interface Root {
+interface MovieDetailsProps {
   adult: boolean;
   backdrop_path: string;
   belongs_to_collection: BelongsToCollection;
@@ -38,37 +37,42 @@ export interface Root {
   vote_count: number;
   videos: Videos;
 }
-export interface BelongsToCollection {
+
+interface BelongsToCollection {
   id: number;
   name: string;
   poster_path: string;
   backdrop_path: string;
 }
-export interface Genre {
+
+interface Genre {
   id: number;
   name: string;
 }
 
-export interface ProductionCompany {
+interface ProductionCompany {
   id: number;
   logo_path: string;
   name: string;
   origin_country: string;
 }
-export interface ProductionCountry {
+
+interface ProductionCountry {
   iso_3166_1: string;
   name: string;
 }
-export interface SpokenLanguage {
+
+interface SpokenLanguage {
   english_name: string;
   iso_639_1: string;
   name: string;
 }
-export interface Videos {
+
+interface Videos {
   results: Result[];
 }
 
-export interface Result {
+interface Result {
   id: string;
   iso_639_1: string;
   iso_3166_1: string;
@@ -78,8 +82,9 @@ export interface Result {
   size: number;
   type: string;
 }
+
 const MovieDetails = () => {
-  const [movie, setMovie] = useState([]);
+  const [movie, setMovie] = useState<MovieDetailsProps | null>(null);
 
   const [showPlayer, setShowPlayer] = useState(false);
   const [trailer, setTrailer] = useState('');
@@ -92,38 +97,43 @@ const MovieDetails = () => {
   useEffect(() => {
     axios
       .get(
-        `https:??api.themoviedb.org/3/movie/${params.id}?api_key=${process.env.NEXT_PUBLIC_API_KEY}&append_to_response-videos`
+        `https://api.themoviedb.org/3/movie/${params.id}?api_key=${process.env.NEXT_PUBLIC_API_KEY}&append_to_response=videos`
       )
       .then((res) => {
-        console.log(res.data);
         setMovie(res.data);
       });
-  }, [params.id]);
+  }, [params.id, process.env.NEXT_PUBLIC_API_KEY]);
 
   useEffect(() => {
-    const trailerIndex = movie?.videos?.results?.findIndex(
-      (element) => element.type === 'Trailer'
-    );
+    if (movie) {
+      const trailerIndex = movie.videos?.results?.findIndex(
+        (element: { type: string }) => element.type === 'Trailer'
+      );
 
-    const trailerURL = `https://www.youtube.com/watch?v=${movie?.videos?.results[trailerIndex]?.key}`;
-    setTrailer(trailerURL);
+      if (trailerIndex !== -1) {
+        const trailerURL = `https://www.youtube.com/watch?v=${movie.videos?.results[trailerIndex]?.key}`;
+        setTrailer(trailerURL);
+      }
+    }
   }, [movie]);
 
   const startPlayer = () => {
-    mainRef?.current?.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'smooth',
-    });
-    setShowPlayer(true);
+    if (mainRef?.current) {
+      mainRef.current.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      });
+      setShowPlayer(true);
+    }
   };
 
   return (
     <main
-      className=' bg-secondary p-8 relative max-h-[calc(100vh-77px)] overflow-y-scroll scrollbar-thin scrollbar-thumb-[#22222a] scrollbar-track-primary '
+      className='bg-secondary p-8 relative max-h-[calc(100vh-77px)] overflow-y-scroll scrollbar-thin scrollbar-thumb-[#22222a] scrollbar-track-primary '
       ref={mainRef}
     >
-      {movie === null && <Loading />}
+      {movie === null && <div>Loading...</div>}
       <div
         className='text-textColor hover:text-white absolute right-0 top-0 m-2 cursor-pointer'
         onClick={router.back}
@@ -138,25 +148,65 @@ const MovieDetails = () => {
           <div className='flex gap-4 md:space-y-3 text-textColor'>
             <div>{movie?.title}</div>
             <div>
-              {movie?.genres?.map((genre, index) => (
-                <Genres
-                  key={genre.id}
-                  id={genre.id}
-                  index={index}
-                  name={genre.name}
-                  length={movie.genres.length}
-                />
-              ))}
+              {movie?.genres?.map(
+                (
+                  genre: { id: React.Key | null | undefined; name: any },
+                  index: any
+                ) => (
+                  <Genres
+                    key={genre.id}
+                    id={genre.id}
+                    index={index}
+                    name={genre.name}
+                    length={movie.genres.length}
+                  />
+                )
+              )}
             </div>
-            <div className='flex flex-col md:flex-row gap-2 md:gap-6'>
-              <div>Language: {movie?.original_language.toUpperCase()}</div>
-              <div>Release: {movie?.release_date}</div>
-              <div>Runtime: {movie?.runtime} min</div>
-              <div>Ratings: {movie?.vote_average}</div>
+            <div>
+              <p className='mb-2'>
+                <strong>Runtime:</strong> {movie?.runtime} minutes
+              </p>
+              <p>
+                <strong>Status:</strong> {movie?.status}
+              </p>
+              <p>
+                <strong>Release Date:</strong> {movie?.release_date}
+              </p>
+              <p>
+                <strong>Tagline:</strong> <span>{movie?.tagline}</span>
+              </p>
+              <p>
+                <strong>Original Language:</strong>{' '}
+                <span>{movie?.original_language?.toUpperCase()}</span>
+              </p>
+              <p>
+                <strong>Budget:</strong> ${movie?.budget}
+              </p>
+              <p>
+                <strong>Revenue:</strong> ${movie?.revenue}
+              </p>
+              <p>
+                <strong>Popularity:</strong> {movie?.popularity}
+              </p>
+              <p>
+                <strong>Vote Count:</strong> <span>{movie?.vote_count}</span>
+              </p>
             </div>
+          </div>
+          <div className='text-textColor my-4 md:my-0'>
+            <h1 className='text-white text-2xl'>Overview:</h1>
+            {movie?.overview}
           </div>
         </div>
       </div>
+      {showPlayer && (
+        <div>
+          <div>
+            <ReactPlayer url={trailer} playing />
+          </div>
+        </div>
+      )}
     </main>
   );
 };
