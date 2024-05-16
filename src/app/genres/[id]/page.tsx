@@ -9,7 +9,15 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 
-const Genres = () => {
+type GenresProps = {
+  key: React.Key | null | undefined;
+  id: React.Key | null | undefined;
+  index: any;
+  name: any;
+  length: number;
+};
+
+const Genres: React.FC<GenresProps> = ({ id, index, name, length }) => {
   const [title, setTitle] = useState('');
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +56,7 @@ const Genres = () => {
         setTotalPage(response.data.total_page);
       })
       .catch((error) => console.log(error));
-  }, [params.id, searchParams.get('page')]);
+  }, [params.id, searchParams]);
 
   const handlePageChange = (button: string) => {
     let page = '';
